@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>xml天气预报</title>
+    <style>
+    </style>
+</head>
+<body>
+请选择城市：
+<select id="province"></select>
+<select id="area"></select>
+<a id="sure" href="javascript:void(0);">确定</a>
+<div id="forecast" style="font-size: 20px;">
+    <h2></h2>
+    <div></div>
+</div>
+<script type="text/javascript" src="js/jquery-1.12.1.min.js"></script>
+<script type="text/javascript">
+    var dataObj = '';
+    //获取省份和市区
+    function getCity(){
+        $.get('./provAndCity.json', function (data) {
+           // console.log(data);
+            dataObj = data;
+            for(var i=0;i<data.length;i++){
+                //获取省份
+               var  $cityOpt = '<option data-id="'+i+'" value="'+data[i].name+'">'+data[i].name+'</option>';
+                $('#province').append($cityOpt);
+            }
+            $('#area').append( '<option data-id="'+0+'" value="'+data[0].name.sub[0]+'">'+'请选择'+'</option>');
+        },'json');
+    }
+    //点击省份之后，自动跳出城市
+    $('#province').on('change',function(){
+        console.log('点击省份了');
+        var i = $(this).find('option:selected').data('id');
+        getArea(dataObj,i);
+    });
+    //获取地区
+    function getArea(data,i){
+        $('#area').not('option:eq(0)').empty();
+        for(var j=0;j<data[i].sub.length;j++){
+            var $areaOpt = '<option datd-id="'+j+'" value="'+data[i].sub[j].name+'">'+data[i].sub[j].name+'</option>';
+            $('#area').append($areaOpt);
+        }
+    }
+    //点击确定 搜索城市
+    $('#sure').on('click', function () {
+        var city = '';
+        var province  = $('#province').val();
+        //如果省份选择的是直辖市和特别行政区
+        // var selfGovern = ['北京','天津','上海','重庆','香港','澳门'];
+        console.log(province);
+        if(province=='北京'||province=='天津'||province=='上海'||province=='重庆' ||province=='香港'||province=='澳门'){
+            city = province;
+            console.log('选中了直辖市');
+            getForeCast(city);
+        }else if($('#area').val()=='请选择'){
+            //如果没有选择地区，并且不是直辖市
+            $('#forecast').html('请选择市区');
+        }else{
+             city  = $('#area').val();
+            getForeCast(city);
+        }
+    });
+    //获取天气预报
+   function getForeCast(city){
+       $.ajax({
+           type:'get',
+           url:'http://wthrcdn.etouch.cn/WeatherApi?city='+city,
+           dataType:'xml',
+           success: function (data) {
+               console.log(data);
+               var $date = '';
+               var $city = $(data).find('city').text();
+               $('#forecast h2').html($city);
+                $(data).find('weather').each(function () {
+                    var this_ = $(this);
+                    console.log(this_);
+                    $date += $(this_).find('date').text()+' ';
+                    $date += $(this_).find('high').text()+' ';
+                    $date += $(this_).find('low').text()+'<br/>';
+                    $date += '白天：'+$(this_).find('day').text()+'<br/>';
+                    $date += '夜晚：'+$(this_).find('night').text()+'<br/>';
+                    $('#forecast >div').html($date);
+                });
+           },
+           error: function (data) {
+               console.log(data);
+               $('#forecast').html('暂无此城市的天气');
+           }
+       });
+   }
+  getCity();
+</script>
+</body>
+</html>
