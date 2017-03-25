@@ -7,13 +7,13 @@
     </style>
 </head>
 <body>
-请选择城市：
+请选择省市和地区：
 <select id="province"></select>
 <select id="area"></select>
 <a id="sure" href="javascript:void(0);">确定</a>
 <div id="forecast" style="font-size: 20px;">
-    <h2></h2>
-    <div></div>
+    <h2 class="city"></h2>
+    <div class="weather"></div>
 </div>
 <script type="text/javascript" src="js/jquery-1.12.1.min.js"></script>
 <script type="text/javascript">
@@ -52,29 +52,36 @@
         //如果省份选择的是直辖市和特别行政区
         // var selfGovern = ['北京','天津','上海','重庆','香港','澳门'];
         console.log(province);
+        if(province =='请选择') {
+            //如果没有选择地区，并且不是直辖市
+            $('.city').html('请选择省市');
+            return;
+        }
+        //选中直辖市不用选择地区
         if(province=='北京'||province=='天津'||province=='上海'||province=='重庆' ||province=='香港'||province=='澳门'){
             city = province;
             console.log('选中了直辖市');
             getForeCast(city);
         }else if($('#area').val()=='请选择'){
             //如果没有选择地区，并且不是直辖市
-            $('#forecast').html('请选择市区');
+            $('.city').html('请选择市区');
+            $('.weather').html('');
         }else{
              city  = $('#area').val();
-            getForeCast(city);
+             getForeCast(city);
         }
     });
     //获取天气预报
-   function getForeCast(city){
+   function getForeCast(area){
        $.ajax({
            type:'get',
-           url:'http://wthrcdn.etouch.cn/WeatherApi?city='+city,
+           url:'http://wthrcdn.etouch.cn/WeatherApi?city='+area,
            dataType:'xml',
            success: function (data) {
                console.log(data);
                var $date = '';
                var $city = $(data).find('city').text();
-               $('#forecast h2').html($city);
+               $('h2').html($city);
                 $(data).find('weather').each(function () {
                     var this_ = $(this);
                     console.log(this_);
@@ -83,7 +90,8 @@
                     $date += $(this_).find('low').text()+'<br/>';
                     $date += '白天：'+$(this_).find('day').text()+'<br/>';
                     $date += '夜晚：'+$(this_).find('night').text()+'<br/>';
-                    $('#forecast >div').html($date);
+                    console.log($date);
+                    $('.weather').html($date);
                 });
            },
            error: function (data) {
