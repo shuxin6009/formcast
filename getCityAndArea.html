@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>获取全国省市区</title>
+    <style>
+    </style>
+</head>
+<body>
+请选择省市和地区：
+<select id="province"></select>
+<select id="city"></select>
+<select id="area"></select>
+
+<script type="text/javascript" src="js/jquery-1.12.1.min.js"></script>
+<script type="text/javascript">
+    var dataObj = '';
+    //获取省份和市区
+    function getProvince(){
+        $.get('./provAndCity.json', function (data) {
+            // console.log(data);
+            dataObj = data;
+            for(var i=0;i<data.length;i++){
+                //获取省份
+                var  $cityOpt = '<option data-id="'+i+'" value="'+data[i].name+'">'+data[i].name+'</option>';
+                $('#province').append($cityOpt);
+            }
+            $('#city').append( '<option data-id="'+0+'" value="'+data[0].sub[0].name+'">'+'请选择'+'</option>');
+            $('#area').append( '<option data-id="'+0+'" value="'+data[0].sub[0].name+'">'+'请选择'+'</option>');
+        },'json');
+    }
+    //点击省份之后，自动跳出城市
+    $('#province').on('change',function(){
+        console.log('点击省份了');
+        var i = $(this).find('option:selected').data('id');
+        getCity(dataObj,i);
+    });
+    //获取城市
+    function getCity(data,i){
+        $('#city').not('option:eq(0)').empty();
+        $('#area').not('option:eq(0)').empty();
+        for(var j=0;j<data[i].sub.length;j++){
+            var $areaOpt = '<option data-id="'+j+'" value="'+data[i].sub[j].name+'">'+data[i].sub[j].name+'</option>';
+            $('#city').append($areaOpt);
+        }
+    }
+    //点击城市之后，自动跳出地区
+    $('#city').on('change',function(){
+        console.log('点击城市了');
+        var i = $('#province option:selected').data('id');//省份的id
+        var j = $(this).find('option:selected').data('id');//城市id
+        getArea(dataObj,i,j);
+    });
+    //获取地区
+    function getArea(data,i,j){
+        $('#area').not('option:eq(0)').empty();
+        for(var o=0;o<data[i].sub[j].sub.length;o++){
+            var $areaOpt = '<option data-id="'+o+'" value="'+data[i].sub[j].sub[o].name+'">'+data[i].sub[j].sub[o].name+'</option>';
+            $('#area').append($areaOpt);
+        }
+    }
+    getProvince();//获取城市
+</script>
+</body>
+</html>
